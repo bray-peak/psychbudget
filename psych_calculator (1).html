@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psychologist Income Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f1efe8;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --green: #1D9E75; --green-bg: #e1f5ee; --green-text: #085041;
+    --red: #E24B4A; --red-bg: #fcebeb; --red-text: #791f1f;
+    --blue: #185FA5; --blue-bg: #e6f1fb; --blue-text: #0c447c;
+    --amber: #BA7517; --amber-bg: #faeeda; --amber-text: #633806;
+    --purple: #534AB7; --purple-bg: #eeedfe; --purple-text: #26215c;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --surface: #2a2a27; --surface2: #323230;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --text: #e8e6e0; --text2: #a8a69e; --text3: #706e68;
+      --green-bg: #04342c; --green-text: #9fe1cb;
+      --red-bg: #501313; --red-text: #f09595;
+      --blue-bg: #042c53; --blue-text: #b5d4f4;
+      --amber-bg: #412402; --amber-text: #fac775;
+      --purple-bg: #26215c; --purple-text: #cecbf6;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; padding: 0 0 60px; }
+  header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 20px 24px; margin-bottom: 24px; }
+  header h1 { font-size: 20px; font-weight: 600; }
+  header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+  @media(max-width:600px) { .metric-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  .metric { background: var(--surface2); border-radius: var(--radius-sm); padding: 14px; }
+  .metric-label { font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+  .metric-value { font-size: 22px; font-weight: 600; }
+  .metric-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; }
+  .badge-info { background: var(--blue-bg); color: var(--blue-text); }
+  .badge-purple { background: var(--purple-bg); color: var(--purple-text); }
+  .btn { background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: background .15s; }
+  .btn:hover { background: var(--surface2); }
+  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn-primary:hover { opacity: .88; }
+  .btn-danger { color: var(--red); border-color: transparent; font-size: 12px; padding: 4px 8px; }
+  .btn-danger:hover { background: var(--red-bg); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 7px 0; font-weight: 500; color: var(--text2); border-bottom: 0.5px solid var(--border2); font-size: 12px; }
+  th.r, td.r { text-align: right; }
+  td { padding: 8px 0; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: top; }
+  .cat-header td { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); padding: 10px 0 4px; border: none; }
+  select, input[type=number], input[type=text] { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 13px; color: var(--text); outline: none; transition: border-color .15s; width: 100%; }
+  select:focus, input:focus { border-color: var(--blue); }
+  .field-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-size: 11px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+  .client-card { background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 12px; }
+  .client-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .client-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; align-items: end; margin-bottom: 10px; }
+  .code-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 8px; align-items: end; margin-bottom: 6px; }
+  .code-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 10px; }
+  .code-section-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+  .split-note { font-size: 12px; color: var(--text3); background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .split-note strong { color: var(--text); }
+  .two-col { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; margin-bottom: 16px; }
+  @media(max-width:650px) { .two-col { grid-template-columns: 1fr; } }
+  footer { text-align: center; font-size: 12px; color: var(--text3); margin-top: 32px; }
+  .not-covered { color: var(--red); font-size: 11px; }
+  .rate-pill { background: var(--green-bg); color: var(--green-text); font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 7px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; border: 0.5px solid var(--border2); color: var(--text2); background: transparent; transition: all .15s; }
+  .tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .once-tag { font-size: 10px; background: var(--amber-bg); color: var(--amber-text); padding: 1px 5px; border-radius: 4px; font-weight: 500; }
+  .recur-tag { font-size: 10px; background: var(--green-bg); color: var(--green-text); padding: 1px 5px; border-radius: 4px; font-weight: 500; }
+  .billing-hint { font-size: 11px; color: var(--text3); margin-top: 3px; font-style: italic; }
+  .eval-notice { background: var(--amber-bg); color: var(--amber-text); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Psychologist Income Calculator</h1>
+    <p>Therapy clients bill recurring monthly sessions. Evaluation clients bill once per case across multiple sessions.</p>
+  </div>
+</header>
+<div class="container">
+  <div class="split-note">
+    <span>Provider split:</span>
+    <strong id="split-display">70%</strong>
+    <input type="range" min="50" max="90" value="70" step="5" id="split-slider" style="width:140px;accent-color:var(--blue)">
+    <span>You keep this % of collected insurance payments</span>
+  </div>
+  <div class="metric-grid" id="metrics"></div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('builder')">Caseload builder</button>
+    <button class="tab" onclick="switchTab('summary')">Summary &amp; breakdown</button>
+    <button class="tab" onclick="switchTab('rates')">Fee schedule</button>
+  </div>
+  <div class="panel active" id="tab-builder">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <div class="section-label" style="margin:0;">Your clients</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="addClient('therapy')">+ Therapy client</button>
+          <button class="btn btn-primary btn-sm" onclick="addClient('eval')">+ Evaluation client</button>
+        </div>
+      </div>
+      <div id="clients-container">
+        <div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">
+          Add your first client above.<br><br>
+          <strong style="color:var(--text2)">Therapy clients</strong> — ongoing weekly sessions, recurring monthly billing. The 90791 intake is billed once only.<br>
+          <strong style="color:var(--text2)">Evaluation clients</strong> — one-time case billed once in total, typically across 2–4 sessions.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="panel" id="tab-summary">
+    <div class="two-col">
+      <div class="card"><div class="section-label">Monthly income summary</div><table id="summary-table"></table></div>
+      <div class="card"><div class="section-label">Income projection</div><table id="projection-table"></table></div>
+    </div>
+    <div class="card"><div class="section-label">Client-by-client breakdown</div><div style="overflow-x:auto"><table id="client-breakdown"></table></div></div>
+    <div class="card"><div class="section-label">Billing by insurance</div><div style="position:relative;width:100%;height:280px;"><canvas id="insuranceChart"></canvas></div></div>
+  </div>
+  <div class="panel" id="tab-rates">
+    <div class="card"><div class="section-label">Full fee schedule</div><div style="overflow-x:auto"><table id="rates-table"></table></div></div>
+  </div>
+  <footer>For internal planning purposes only. Actual reimbursement may vary based on credentialing, claim specifics, and payer contracts.</footer>
+</div>
+<script>
+const INSURANCES=['SoonerCare','Humana Healthy Horizons','Aetna Better Health','Oklahoma Complete Health','BCBS Choice/Anthem/Federal','BCBS LINCS HMO/Advantage','BCBS Preferred','BCBS Traditional','HealthChoice','TRICARE','UHC/GEHA/UMR/UHSS','Healthcare Highway','CIGNA','CIGNA (2025)','Aetna','WebTPA','Bright Health','Private Pay'];
+const CODES={
+  '90791':{desc:'Psychiatric Diagnostic Evaluation (Intake)',time:'60 min',oneTime:true,rates:[139.76,139.76,139.76,139.76,179.16,144.59,172.69,183.02,191.86,118.62,121.19,111.14,138,142,166.12,154.43,111.14,225]},
+  '90832':{desc:'Psych Therapy 30 min',time:'30 min',oneTime:false,rates:[60.35,60.35,60.35,60.35,77.24,62.34,74.46,78.90,87.30,51.38,58.84,54.44,60,62,71.43,60.47,54.44,125]},
+  '90834':{desc:'Psych Therapy 45 min',time:'45 min',oneTime:false,rates:[79.98,79.98,79.98,79.98,102.63,82.83,98.93,104.84,115.18,69.63,78.66,72.41,80,82,118.29,86.62,72.41,175]},
+  '90837':{desc:'Psychotherapy 60 min',time:'60 min',oneTime:false,rates:[118.10,118.10,118.10,118.10,151.26,122.08,122.08,105.33,175.15,103.53,118,118.10,117,121,142.98,125.785,108.37,175]},
+  '90846':{desc:'Family Therapy (without patient)',time:'50 min',oneTime:false,rates:[77.57,77.57,77.57,77.57,99.41,80.23,95.83,101.55,null,67.31,94.97,80,77,79,125.11,126.05,80,175]},
+  '90847':{desc:'Family Therapy (with patient)',time:'50 min',oneTime:false,rates:[80.36,80.36,80.36,80.36,102.99,83.12,99.27,105.21,114.89,68.40,98.81,82.84,80,82,125.11,null,82.84,175]},
+  '90849':{desc:'Multiple-Family Group Therapy',time:'varies',oneTime:false,rates:[null,null,null,null,34.33,27.71,33.09,35.07,41.30,null,40,null,27,28,56.87,null,null,100]},
+  '90853':{desc:'Group Psychotherapy',time:'varies',oneTime:false,rates:[21.28,21.28,21.28,21.28,27.18,21.93,26.20,27.76,30.80,null,40,21.55,21,22,56.87,null,21.55,100]},
+  '90887':{desc:'Interpretation/Explanation of Results',time:'60 min',oneTime:true,rates:[72.45,72.45,72.45,72.45,87.67,69.26,82.73,87.67,null,null,null,null,null,null,null,null,null,null]},
+  '96112':{desc:'Developmental Test Admin 1hr',time:'60 min',oneTime:true,rates:[119.47,119.47,119.47,119.47,129.09,104.18,124.44,131.87,null,85.23,null,null,99,102,185.48,97.53,127.85,150]},
+  '96113':{desc:"Developmental Test Admin (add'l 30 min)",time:'30 min',oneTime:false,rates:[53.41,53.41,53.41,53.41,57.57,46.46,55.50,58.81,null,40.20,null,null,47,48,82.99,45.83,60.31,75]},
+  '96116':{desc:'Neurobehavioral Status Exam',time:'60 min',oneTime:true,rates:[76.24,76.24,76.24,76.24,95.12,76.77,91.69,97.17,104.80,null,84.74,null,73,75,136.14,null,null,150]},
+  '96121':{desc:"Neurobehavioral Status Exam (add'l)",time:'60 min',oneTime:false,rates:[72.92,72.92,72.92,72.92,81.18,65.51,78.25,82.92,86.33,null,74.19,null,62,64,112.89,null,null,150]},
+  '96130':{desc:'Psych Testing Eval by Qualified Pro',time:'60 min',oneTime:true,rates:[104.15,104.15,104.15,104.15,119.44,96.39,115.13,122.01,136.01,82.03,105.52,93.36,94,97,160.86,104.07,93.36,150]},
+  '96131':{desc:"Psych Testing Eval (add'l per hour)",time:'60 min',oneTime:false,rates:[79.25,79.25,79.25,79.25,90.47,73.02,87.21,92.42,98.71,61.13,80.26,71.78,70,72,122.30,78.87,71.78,150]},
+  '96132':{desc:'Neuropsych Testing Eval by Qualified Pro',time:'60 min',oneTime:true,rates:[115.92,115.92,115.92,115.92,130.88,105.63,126.16,133.70,146.21,87.42,123.62,103.43,102,105,179.25,53.39,103.43,150]},
+  '96133':{desc:"Neuropsych Testing Eval (add'l per hour)",time:'60 min',oneTime:false,rates:[88.46,88.46,88.46,88.46,101.92,82.25,98.24,104.11,111.36,66.58,94,77.82,79,81,136.79,61.37,77.82,150]},
+  '96136':{desc:'Psych/Neuropsych Test Admin & Scoring',time:'60 min',oneTime:true,rates:[40.26,40.26,40.26,40.26,44.34,35.79,42.74,45.30,46.70,27.93,40.57,35.26,33,34,62.79,38.68,35.26,75]},
+  '96137':{desc:"Psych/Neuropsych Test Admin & Scoring (add'l)",time:'60 min',oneTime:false,rates:[37.05,37.05,37.05,37.05,39.69,32.03,38.26,40.55,42.82,25.60,37.34,32.20,30,31,57.76,32.20,32.20,75]},
+  '96138':{desc:'Psych/Neuropsych Test Admin & Scoring',time:'30 min',oneTime:true,rates:[28.04,28.04,28.04,28.04,33.61,27.13,32.40,34.34,36.02,23,34.54,26.94,25,26,49.03,29.33,26.94,75]},
+  '96139':{desc:"Psych/Neuropsych Test Admin & Scoring (add'l)",time:'30 min',oneTime:false,rates:[28.04,28.04,28.04,28.04,33.61,27.13,32.40,34.34,37.08,23,34.54,26.94,25,26,49.03,29.32,26.94,75]},
+};
+const THERAPY_CODES=['90791','90832','90834','90837','90846','90847','90849','90853'];
+const EVAL_CODES=['90887','96112','96113','96116','96121','96130','96131','96132','96133','96136','96137','96138','96139'];
+let clients=[],clientId=0,splitPct=0.70,insChart=null;
+function getRate(code,i){const r=CODES[code].rates[i];return(r===null||r===undefined)?null:r;}
+function fmtN(n){const s=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');return(n<0?'−$':'$')+s;}
+function switchTab(name){
+  const names=['builder','summary','rates'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='summary')renderSummary();
+  if(name==='rates')renderRates();
+}
+function addClient(type){
+  const id=clientId++;
+  const num=clients.length+1;
+  clients.push({id,type,name:type==='therapy'?'Therapy Client '+num:'Eval Client '+num,insurance:0,
+    sessions:type==='therapy'?4:3,
+    codes:type==='therapy'
+      ?[{code:'90791',units:1},{code:'90837',units:1}]
+      :[{code:'96130',units:1},{code:'96131',units:3},{code:'96136',units:1},{code:'96137',units:2}]
+  });
+  renderClients();renderMetrics();
+}
+function removeClient(id){clients=clients.filter(c=>c.id!==id);renderClients();renderMetrics();}
+function addCode(cid,pool){
+  const c=clients.find(x=>x.id===cid);
+  const codes=pool==='therapy'?THERAPY_CODES:EVAL_CODES;
+  c.codes.push({code:codes[0],units:1});
+  renderClients();renderMetrics();
+}
+function removeCode(cid,ci){const c=clients.find(x=>x.id===cid);c.codes.splice(ci,1);renderClients();renderMetrics();}
+function updateClient(id,field,val){
+  const c=clients.find(x=>x.id===id);
+  if(field==='insurance')c.insurance=parseInt(val);
+  else if(field==='sessions')c.sessions=parseInt(val)||1;
+  else if(field==='name')c.name=val;
+  renderClients();renderMetrics();
+}
+function updateCode(cid,ci,field,val){
+  const c=clients.find(x=>x.id===cid);
+  if(field==='code')c.codes[ci].code=val;
+  if(field==='units')c.codes[ci].units=parseInt(val)||1;
+  renderClients();renderMetrics();
+}
+function calcClient(c){
+  let gross=0;
+  c.codes.forEach(cd=>{
+    const rate=getRate(cd.code,c.insurance);
+    if(rate===null)return;
+    const isOneTime=CODES[cd.code].oneTime;
+    if(c.type==='therapy'){
+      gross+=isOneTime?(rate*cd.units):(rate*cd.units*c.sessions);
+    } else {
+      gross+=rate*cd.units;
+    }
+  });
+  return{gross,takehome:gross*splitPct};
+}
+function calcMonthlyRecurring(){
+  let gross=0,takehome=0;
+  clients.filter(c=>c.type==='therapy').forEach(c=>{
+    let r=0;
+    c.codes.forEach(cd=>{
+      const rate=getRate(cd.code,c.insurance);
+      if(rate!==null&&!CODES[cd.code].oneTime)r+=rate*cd.units*c.sessions;
+    });
+    gross+=r;takehome+=r*splitPct;
+  });
+  return{gross,takehome};
+}
+function renderClients(){
+  const container=document.getElementById('clients-container');
+  if(!clients.length){container.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">Add your first client above.<br><br><strong style="color:var(--text2)">Therapy clients</strong> — ongoing weekly sessions, recurring monthly. The 90791 intake is billed once only.<br><strong style="color:var(--text2)">Evaluation clients</strong> — one-time case billed once total across 2–4 sessions.</div>';return;}
+  container.innerHTML='';
+  const palette=['#185FA5','#1D9E75','#BA7517','#993556','#533AB7','#D85A30','#0F6E56','#993C1D'];
+  clients.forEach((c,ci)=>{
+    const r=calcClient(c);
+    const color=palette[ci%palette.length];
+    const isT=c.type==='therapy';
+    const insOpts=INSURANCES.map((ins,i)=>`<option value="${i}" ${c.insurance===i?'selected':''}>${ins}</option>`).join('');
+    const codePool=isT?THERAPY_CODES:EVAL_CODES;
+    let codesHtml='';
+    c.codes.forEach((cd,ci2)=>{
+      const rate=getRate(cd.code,c.insurance);
+      const isOneTime=CODES[cd.code].oneTime;
+      const opts=codePool.map(code=>`<option value="${code}" ${cd.code===code?'selected':''}>${code} — ${CODES[code].desc.substring(0,40)}${CODES[code].desc.length>40?'...':''}</option>`).join('');
+      let hint='',lineTotal='';
+      if(rate===null){hint='<span style="color:var(--red);font-size:11px">Not covered by this insurance</span>';lineTotal='—';}
+      else if(isT){
+        if(isOneTime){hint=`<span class="once-tag">ONE-TIME</span> Billed once per client — ${fmtN(rate*cd.units)} total`;lineTotal=fmtN(rate*cd.units);}
+        else{hint=`<span class="recur-tag">RECURRING</span> ${fmtN(rate)} × ${cd.units} unit${cd.units>1?'s':''} × ${c.sessions} sessions = ${fmtN(rate*cd.units*c.sessions)}/mo`;lineTotal=fmtN(rate*cd.units*c.sessions)+'/mo';}
+      } else {
+        hint=`<span class="once-tag">ONE-TIME CASE</span> ${fmtN(rate)} × ${cd.units} unit${cd.units>1?'s':''} = ${fmtN(rate*cd.units)}`;lineTotal=fmtN(rate*cd.units);
+      }
+      codesHtml+=`<div class="code-row">
+        <div class="field-wrap">${ci2===0?'<label class="field-label">CPT Code</label>':''}<select onchange="updateCode(${c.id},${ci2},'code',this.value)">${opts}</select><div class="billing-hint">${hint}</div></div>
+        <div class="field-wrap">${ci2===0?`<label class="field-label">${isT&&!isOneTime?'Units/session':'Total units'}</label>`:''}<input type="number" min="1" max="20" value="${cd.units}" style="width:80px" onchange="updateCode(${c.id},${ci2},'units',this.value)"></div>
+        <div class="field-wrap" style="font-size:13px;font-weight:600;color:var(--blue);padding-top:${ci2===0?'18':'0'}px">${lineTotal}</div>
+        <button class="btn btn-danger" onclick="removeCode(${c.id},${ci2})" style="margin-top:${ci2===0?'18':'0'}px">✕</button>
+      </div>`;
+    });
+    const evalNotice=!isT?`<div class="eval-notice">One-time evaluation case — total below reflects full case billing, not a monthly recurring amount.</div>`:'';
+    const div=document.createElement('div');
+    div.className='client-card';
+    div.style.borderLeft=`3px solid ${color}`;
+    div.innerHTML=`
+      <div class="client-header">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="badge ${isT?'badge-info':'badge-purple'}">${isT?'Therapy — Recurring':'Evaluation — One-Time Case'}</span>
+          <input type="text" value="${c.name}" style="border:none;background:transparent;font-size:14px;font-weight:600;color:var(--text);padding:0;width:180px" onchange="updateClient(${c.id},'name',this.value)">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:13px;font-weight:600;color:var(--green)">${fmtN(r.takehome)} to you${isT?'/mo':' (case total)'}</span>
+          <button class="btn btn-danger" onclick="removeClient(${c.id})">Remove</button>
+        </div>
+      </div>
+      ${evalNotice}
+      <div class="client-row">
+        <div class="field-wrap"><label class="field-label">Insurance</label><select onchange="updateClient(${c.id},'insurance',this.value)">${insOpts}</select></div>
+        <div class="field-wrap">
+          <label class="field-label">${isT?'Sessions / month':'Total sessions (this case)'}</label>
+          <input type="number" min="1" max="30" value="${c.sessions}" onchange="updateClient(${c.id},'sessions',this.value)">
+          <div style="font-size:11px;color:var(--text3)">${isT?'~'+(c.sessions/4.33).toFixed(1)+' per week':'Typically 2–4 sessions spread over a few weeks'}</div>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">${isT?'Recurring gross/mo':'One-time case total'}</label>
+          <div style="padding:8px 0;font-size:15px;font-weight:600;color:var(--blue)">${fmtN(r.gross)}</div>
+        </div>
+      </div>
+      <div class="code-section">
+        <div class="code-section-label">CPT codes billed</div>
+        ${codesHtml}
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          ${isT
+            ?`<button class="btn btn-sm" onclick="addCode(${c.id},'therapy')">+ Add code</button>`
+            :`<button class="btn btn-sm" onclick="addCode(${c.id},'eval')">+ Add eval code</button>`}
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+function renderMetrics(){
+  const m=calcMonthlyRecurring();
+  let evalGross=0,oneTimeTherapy=0;
+  clients.filter(c=>c.type==='eval').forEach(c=>{evalGross+=calcClient(c).gross;});
+  clients.filter(c=>c.type==='therapy').forEach(c=>{
+    c.codes.forEach(cd=>{if(CODES[cd.code].oneTime){const r=getRate(cd.code,c.insurance);if(r!==null)oneTimeTherapy+=r*cd.units;}});
+  });
+  const split=Math.round(splitPct*100);
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Monthly recurring billing</div><div class="metric-value" style="color:var(--blue)">${fmtN(m.gross)}</div><div class="metric-sub">${clients.filter(c=>c.type==='therapy').length} therapy client${clients.filter(c=>c.type==='therapy').length!==1?'s':''}</div></div>
+    <div class="metric"><div class="metric-label">One-time case billing</div><div class="metric-value" style="color:var(--purple)">${fmtN(evalGross+oneTimeTherapy)}</div><div class="metric-sub">${clients.filter(c=>c.type==='eval').length} eval case${clients.filter(c=>c.type==='eval').length!==1?'s':''} + intakes</div></div>
+    <div class="metric"><div class="metric-label">Recurring take-home (${split}%)</div><div class="metric-value" style="color:var(--green)">${fmtN(m.takehome)}</div><div class="metric-sub">Per month, ongoing</div></div>
+    <div class="metric"><div class="metric-label">Annual recurring est.</div><div class="metric-value" style="color:var(--amber)">${fmtN(m.takehome*12)}</div><div class="metric-sub">Therapy caseload only</div></div>`;
+}
+function renderSummary(){
+  const m=calcMonthlyRecurring();
+  let evalGross=0,oneTimeTherapy=0;
+  const byIns={};
+  clients.filter(c=>c.type==='eval').forEach(c=>{const r=calcClient(c);evalGross+=r.gross;});
+  clients.filter(c=>c.type==='therapy').forEach(c=>{
+    c.codes.forEach(cd=>{if(CODES[cd.code].oneTime){const r=getRate(cd.code,c.insurance);if(r!==null)oneTimeTherapy+=r*cd.units;}});
+  });
+  clients.forEach(c=>{const r=calcClient(c);const k=INSURANCES[c.insurance];byIns[k]=(byIns[k]||0)+r.gross;});
+  const split=Math.round(splitPct*100);
+  const oneTotal=evalGross+oneTimeTherapy;
+  document.getElementById('summary-table').innerHTML=`
+    <thead><tr><th>Line item</th><th class="r">Amount</th></tr></thead><tbody>
+    <tr class="cat-header"><td colspan="2">Recurring monthly (therapy sessions)</td></tr>
+    <tr><td>Gross billing/mo</td><td class="r">${fmtN(m.gross)}</td></tr>
+    <tr><td>Your take-home (${split}%)</td><td class="r" style="font-weight:600;color:var(--green)">${fmtN(m.takehome)}</td></tr>
+    <tr class="cat-header"><td colspan="2">One-time billing (evals + intakes)</td></tr>
+    <tr><td>Total case billing</td><td class="r">${fmtN(oneTotal)}</td></tr>
+    <tr><td>Your take-home (${split}%)</td><td class="r" style="font-weight:600;color:var(--purple)">${fmtN(oneTotal*splitPct)}</td></tr>
+    </tbody>`;
+  document.getElementById('projection-table').innerHTML=`
+    <thead><tr><th>Projection</th><th class="r">Amount</th></tr></thead><tbody>
+    <tr><td>Monthly recurring take-home</td><td class="r" style="font-weight:600">${fmtN(m.takehome)}</td></tr>
+    <tr><td>Annual recurring take-home</td><td class="r" style="font-weight:600;color:var(--amber)">${fmtN(m.takehome*12)}</td></tr>
+    <tr><td style="color:var(--text2);font-size:12px">+ One-time cases (current)</td><td class="r" style="color:var(--purple)">${fmtN(oneTotal*splitPct)}</td></tr>
+    <tr><td style="font-weight:600">Combined snapshot total</td><td class="r" style="font-weight:600;color:var(--green);font-size:15px">${fmtN(m.takehome+oneTotal*splitPct)}</td></tr>
+    </tbody>`;
+  let brkRows=`<thead><tr><th>Client</th><th>Type</th><th>Insurance</th><th class="r">Gross</th><th class="r">Your cut (${split}%)</th><th>Billing</th></tr></thead><tbody>`;
+  clients.forEach(c=>{
+    const r=calcClient(c);
+    const codes=c.codes.map(cd=>cd.code).join(', ');
+    brkRows+=`<tr><td style="font-weight:500">${c.name}<br><span style="font-size:11px;color:var(--text3)">${codes}</span></td><td><span class="badge ${c.type==='therapy'?'badge-info':'badge-purple'}">${c.type==='therapy'?'Therapy':'Eval'}</span></td><td style="font-size:12px">${INSURANCES[c.insurance]}</td><td class="r">${fmtN(r.gross)}</td><td class="r" style="font-weight:600;color:var(--green)">${fmtN(r.takehome)}</td><td><span class="${c.type==='therapy'?'recur-tag':'once-tag'}">${c.type==='therapy'?'RECURRING/MO':'ONE-TIME CASE'}</span></td></tr>`;
+  });
+  if(!clients.length)brkRows+=`<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">No clients added yet</td></tr>`;
+  document.getElementById('client-breakdown').innerHTML=brkRows+'</tbody>';
+  const isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gc=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)';
+  const tc=isDark?'#706e68':'#888780';
+  const pal=['#185FA5','#1D9E75','#BA7517','#993556','#533AB7','#D85A30','#0F6E56','#993C1D'];
+  const iL=Object.keys(byIns),iV=Object.values(byIns);
+  if(insChart)insChart.destroy();
+  insChart=new Chart(document.getElementById('insuranceChart'),{type:'bar',data:{labels:iL,datasets:[{label:'Gross',data:iV,backgroundColor:pal.slice(0,iL.length),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{ticks:{color:tc,callback:v=>'$'+v.toLocaleString()},grid:{color:gc}}}}});
+}
+function renderRates(){
+  let html=`<thead><tr><th>Code</th><th>Description</th><th>Type</th>`;
+  INSURANCES.forEach(ins=>{html+=`<th class="r" style="font-size:11px;white-space:nowrap">${ins}</th>`;});
+  html+=`</tr></thead><tbody>`;
+  Object.entries(CODES).forEach(([code,cd])=>{
+    html+=`<tr><td style="font-weight:600;white-space:nowrap">${code}</td><td style="font-size:12px;max-width:180px">${cd.desc}<br><span style="color:var(--text3)">${cd.time}</span></td><td><span class="${cd.oneTime?'once-tag':'recur-tag'}">${cd.oneTime?'ONE-TIME':'RECURRING'}</span></td>`;
+    cd.rates.forEach(r=>{html+=`<td class="r">${r!==null?'<span class="rate-pill">$'+r.toFixed(2)+'</span>':'<span class="not-covered">N/C</span>'}</td>`;});
+    html+='</tr>';
+  });
+  document.getElementById('rates-table').innerHTML=html+'</tbody>';
+}
+document.getElementById('split-slider').addEventListener('input',function(){
+  splitPct=parseInt(this.value)/100;
+  document.getElementById('split-display').textContent=this.value+'%';
+  renderClients();renderMetrics();
+});
+addClient('therapy');
+addClient('eval');
+</script>
+</body>
+</html>
