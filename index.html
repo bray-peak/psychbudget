@@ -163,7 +163,7 @@ const CODES={
   '96139':{desc:"Psych/Neuropsych Test Admin & Scoring (add'l)",time:'30 min',oneTime:false,rates:[28.04,28.04,28.04,28.04,33.61,27.13,32.40,34.34,37.08,23,34.54,26.94,25,26,49.03,29.32,26.94,75]},
 };
 const THERAPY_CODES=['90791','90832','90834','90837','90846','90847','90849','90853'];
-const EVAL_CODES=['90887','96112','96113','96116','96121','96130','96131','96132','96133','96136','96137','96138','96139'];
+const EVAL_CODES=['90791','90887','96112','96113','96116','96121','96130','96131','96132','96133','96136','96137','96138','96139'];
 let clients=[],clientId=0,splitPct=0.70,insChart=null;
 function getRate(code,i){const r=CODES[code].rates[i];return(r===null||r===undefined)?null:r;}
 function fmtN(n){const s=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');return(n<0?'−$':'$')+s;}
